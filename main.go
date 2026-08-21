@@ -6,17 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
 
+// Matches official Umami GET /api/websites/:websiteId/stats response
 type UmamiStat struct {
-	Pageviews struct {
-		Value int `json:"value"`
-	} `json:"pageviews"`
-	Visitors struct {
-		Value int `json:"value"`
-	} `json:"visitors"`
+	Pageviews int `json:"pageviews"`
+	Visitors  int `json:"visitors"`
 }
 
 type PeriodStats struct {
@@ -128,8 +126,8 @@ func fetchStat(websiteID string, startAt, endAt int64) (PeriodStats, error) {
 	}
 
 	return PeriodStats{
-		Pageviews: stat.Pageviews.Value,
-		Visitors:  stat.Visitors.Value,
+		Pageviews: stat.Pageviews,
+		Visitors:  stat.Visitors,
 	}, nil
 }
 
@@ -196,6 +194,14 @@ func main() {
 	if umamiURL == "" {
 		log.Fatal("FATAL: UMAMI_URL environment variable is required")
 	}
+
+	// Auto-fix missing http:// or https:// prefix
+	if !strings.HasPrefix(umamiURL, "http://") && !strings.HasPrefix(umamiURL, "https://") {
+		umamiURL = "https://" + umamiURL
+	}
+
+	// Trim trailing slash if present
+	umamiURL = strings.TrimRight(umamiURL, "/")
 
 	umamiAPIKey = os.Getenv("UMAMI_API_KEY")
 
