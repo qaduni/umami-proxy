@@ -1,20 +1,16 @@
-# Exclude environment secret files
+# Environment & Secrets
 *.env
 *.env.*
 .env
 
-# Exclude documentation & project configuration
-*.md
+# Local Dev/IDE Cache & Binaries
+.git
+.vscode
+.idea
+proxy
+*.exe
+
+# Exclude Docker setup files from container context (Optional)
 docker-compose*.yml
 Dockerfile*
 LICENSE
-
-# Exclude Git and local editor meta-files
-.git
-.gitignore
-.vscode
-.idea
-
-# Exclude local build output/cache
-dist/
-tmp/

@@ -1,6 +1,8 @@
+version: '3.8'
+
 services:
   umami-proxy:
-    build: .
+    image: ghcr.io/qaduni/umami-proxy:latest
     restart: always
     expose:
       - "8080"

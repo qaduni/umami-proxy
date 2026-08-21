@@ -1,26 +1,49 @@
-name: Update README with Dokploy Template Base64
+name: Build Docker Image & Update Dokploy Template
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'docker-compose.yml'
-      - 'template.toml'
   workflow_dispatch:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
-  update-readme:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
-      - name: Generate Base64 Payload & Update README
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update README with Dokploy Base64
         run: |
           python3 -c '
           import json, base64, re
@@ -32,7 +55,6 @@ jobs:
           with open("README.md", "r") as f:
               readme = f.read()
 
-          # Replace content between markers
           pattern = r"(<!-- DOKPLOY_BASE64_START -->)(.*?)(<!-- DOKPLOY_BASE64_END -->)"
           replacement = f"\\1\\n```text\\n{b64_str}\\n```\\n\\3"
           
@@ -42,7 +64,7 @@ jobs:
               f.write(updated_readme)
           '
 
-      - name: Commit and Push Changes
+      - name: Commit Updated README
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -50,6 +72,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes in README.md to commit."
           else
-            git commit -m "docs: auto-update Dokploy Base64 template string in README"
+            git commit -m "docs: auto-update Dokploy Base64 template in README"
             git push
           fi
