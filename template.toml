@@ -1,9 +1,10 @@
 [variables]
 umami_url = "stats.example.com"
+umami_api_key = "REPLACE_ME_WITH_API_KEY"
 umami_proxy_domain = "${domain}"
 
 [config]
-env = ["UMAMI_URL=${umami_url}"]
+env = ["UMAMI_URL=${umami_url}", "UMAMI_API_KEY=${umami_api_key}"]
 
 [[config.domains]]
 serviceName = "umami-proxy"

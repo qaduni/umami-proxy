@@ -32,9 +32,11 @@ type ProxyResponse struct {
 	Total     PeriodStats `json:"total"`
 }
 
-var umamiURL string
+var (
+	umamiURL    string
+	umamiAPIKey string
+)
 
-// Shared HTTP Client with TCP connection pooling across all request threads
 var sharedClient = &http.Client{
 	Timeout: 5 * time.Second,
 	Transport: &http.Transport{
@@ -47,7 +49,16 @@ var sharedClient = &http.Client{
 func fetchStat(websiteID string, startAt, endAt int64) (PeriodStats, error) {
 	url := fmt.Sprintf("%s/api/websites/%s/stats?startAt=%d&endAt=%d", umamiURL, websiteID, startAt, endAt)
 
-	resp, err := sharedClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return PeriodStats{}, err
+	}
+
+	if umamiAPIKey != "" {
+		req.Header.Set("Authorization", "Bearer "+umamiAPIKey)
+	}
+
+	resp, err := sharedClient.Do(req)
 	if err != nil {
 		return PeriodStats{}, err
 	}
@@ -116,6 +127,8 @@ func main() {
 	if umamiURL == "" {
 		log.Fatal("FATAL: UMAMI_URL environment variable is required")
 	}
+
+	umamiAPIKey = os.Getenv("UMAMI_API_KEY")
 
 	http.HandleFunc("/stats", statsHandler)
 	log.Printf("Proxy running on port 8080 forwarding to %s...", umamiURL)
