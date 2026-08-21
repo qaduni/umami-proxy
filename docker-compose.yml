@@ -1,0 +1,8 @@
+services:
+  umami-proxy:
+    build: .
+    restart: always
+    expose:
+      - "8080"
+    environment:
+      - UMAMI_URL=${UMAMI_URL}
