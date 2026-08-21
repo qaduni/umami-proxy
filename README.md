@@ -17,6 +17,13 @@ It queries Umami’s REST API concurrently using Go goroutines and returns merge
 
 ---
 
+## Dokploy One-Click Import
+
+Copy the Base64 payload below and paste it directly into Dokploy under **Templates -> Import**:
+
+<!-- DOKPLOY_BASE64_START -->
+<!-- DOKPLOY_BASE64_END -->
+
 ## API Usage
 
 ### Endpoint

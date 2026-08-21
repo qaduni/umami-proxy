@@ -1,0 +1,12 @@
+[variables]
+umami_url = "stats.example.com"
+umami_proxy_domain = "${domain}"
+
+[config]
+env = ["UMAMI_URL=${umami_url}"]
+
+[[config.domains]]
+serviceName = "umami-proxy"
+port = 8080
+host = "${umami_proxy_domain}"
+https = true

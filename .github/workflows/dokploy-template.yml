@@ -1,0 +1,55 @@
+name: Update README with Dokploy Template Base64
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker-compose.yml'
+      - 'template.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Generate Base64 Payload & Update README
+        run: |
+          python3 -c '
+          import json, base64, re
+
+          with open("docker-compose.yml") as f1, open("template.toml") as f2:
+              data = {"compose": f1.read(), "config": f2.read()}
+              b64_str = base64.b64encode(json.dumps(data).encode()).decode()
+
+          with open("README.md", "r") as f:
+              readme = f.read()
+
+          # Replace content between markers
+          pattern = r"(<!-- DOKPLOY_BASE64_START -->)(.*?)(<!-- DOKPLOY_BASE64_END -->)"
+          replacement = f"\\1\\n```text\\n{b64_str}\\n```\\n\\3"
+          
+          updated_readme = re.sub(pattern, replacement, readme, flags=re.DOTALL)
+
+          with open("README.md", "w") as f:
+              f.write(updated_readme)
+          '
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes in README.md to commit."
+          else
+            git commit -m "docs: auto-update Dokploy Base64 template string in README"
+            git push
+          fi
