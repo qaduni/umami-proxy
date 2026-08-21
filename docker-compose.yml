@@ -1,6 +1,7 @@
 services:
   umami-proxy:
     image: ghcr.io/qaduni/umami-proxy:latest
+    pull_policy: always
     restart: always
     expose:
       - "8080"
